@@ -1,0 +1,157 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  sharemytutoring-api
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  # ENVIRONMENT: 
+  #   Type: String
+  #   Default: Prod
+  # APIDomainName: 
+  #   Type: String
+  #   Default: sharemytutoring-com-api-domain-setup
+
+  DATABASEHOST: 
+    Type: String
+    Default: sharemytutoring.cfw1z3f57fsu.eu-west-2.rds.amazonaws.com
+
+  DATABASEUSER: 
+    Type: String
+    Default: Admin
+
+  DATABASEPASSWORD:
+    Type: String
+    Default: Sybase01!
+
+  DATABASENAME: 
+    Type: String
+    Default: sharemytutoring
+
+  DATABASEPORT:
+    Type: String
+    Default: 3306
+
+  JWTTUTORSECRET:
+    Type: String
+    Default: bestTutoringSite
+
+Globals:
+  Function:
+    Runtime: nodejs10.x
+    MemorySize: 128
+    Timeout: 100
+    VpcConfig:
+      SecurityGroupIds:
+        - sg-00634fc3a409d8b49
+      SubnetIds:
+        - subnet-0552fc6f5cdaf111d
+    Environment:
+      Variables:
+        DB_HOST: !Ref DATABASEHOST
+        DB_USER: !Ref DATABASEUSER
+        DB_PASSWORD: !Ref DATABASEPASSWORD
+        DB_DATABASE: !Ref DATABASENAME
+        DB_PORT: !Ref DATABASEPORT
+        JWT_SECRET: !Ref JWTTUTORSECRET
+
+  # Api:
+    # Cors:
+    #   AllowMethods: "'*'"
+    #   AllowHeaders: "'*'"
+    #   AllowOrigin: "'*'"
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:
+
+  #
+  # Create the api gateway from a swagger file
+  #
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+        Name: sharemytutoring-com
+        # Cors:
+        #   AllowMethods: "'*'"
+        #   AllowHeaders: "'*'"
+        #   AllowOrigin: "'*'"
+        DefinitionBody:
+          'Fn::Transform':
+            Name: 'AWS::Include'
+            Parameters:
+              Location: ./swagger.yml
+        EndpointConfiguration: REGIONAL
+        StageName: Prod
+
+  APIBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    DependsOn:
+      - ApiGateway
+    Properties:
+      BasePath: "v1"
+      DomainName: api.sharemytutoring.com
+      RestApiId: !Ref ApiGateway
+      Stage: !Ref ApiGateway.Stage
+
+  #
+  # Create User Accounts
+  #
+  userAccountMaintenance:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userAccountMaintenanceTest
+      Handler: user-account.userAccountHandler
+      CodeUri: lambdas/handlers/user
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: handles the tutor creation, updating, deleting and retrieval.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTUserAccountLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /user
+            Method: ANY
+
+  SMTCommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: smt-common-test
+      Description: Contains the common modules for the functions a our mySQL database handlers.
+      ContentUri: layers/common/
+      CompatibleRuntimes:
+      - nodejs10.x
+      - nodejs12.x
+      RetentionPolicy: Delete
+
+  SMTUserAccountLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: smt-user-account-test
+      Description: Contains the code for the user account database model and the user account validation
+      ContentUri: layers/user-account/
+      CompatibleRuntimes:
+      - nodejs10.x
+      - nodejs12.x
+      RetentionPolicy: Delete
+
+Outputs:
+
+  APIGatewayID:
+    Description: "API Gateway - Gateway ID"
+    Value: !Ref ApiGateway
+
+  APIGatewayRootResourceID:
+    Description: "API Gateway - Gateway Root Resource ID"
+    Value: !GetAtt ApiGateway.RootResourceId

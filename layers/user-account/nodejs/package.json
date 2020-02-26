@@ -1,0 +1,13 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install && 7z a ../lambda-layer-tutor.zip -r ../nodejs",
+    "deploy": "aws lambda publish-layer-version --layer-name \"smt-tutor\" --description \"Sharemytutoring tutor layer, contains validation and code to maintain the tutor database tables.\" --license-info \"MIT\" --compatible-runtimes nodejs10.x nodejs12.x --zip-file fileb://..\\lambda-layer-tutor.zip "
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}

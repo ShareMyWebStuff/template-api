@@ -1,0 +1,518 @@
+openapi: 3.0.0
+info:
+  version: '1.0.0'
+  title: 'ShareMyTutoring.com API'
+  description: 'The API for ShareMyTutoring.com'
+
+servers:
+  - description: V1 Creation
+    url: https://sharemytutoring.com/api/v1
+
+tags:
+  - name: User Details
+    description: Maintaining user details (CRUD).
+  - name: Authenticate User
+    description: Handles users login in to the application. 
+
+paths:
+
+  /user:
+    summary: Represents a user
+    description: The login details for any user (student / tutor or parent).
+    
+    post:
+      summary: Creates a user account.
+      description: Creates a user account.
+      tags:
+        - User Details
+      operationId: createUser
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: 'Dave123'
+                email:
+                  type: string
+                  example: 'dave@hello.co.uk'
+                password:
+                  type: string
+                  example: 'Hello123!'
+                password2:
+                  type: string
+                  example: 'Hello123!'
+                type:
+                  type: integer
+                  enum: [1,2,3]
+                  example: '1'
+      responses:
+        '200':
+          description: User account already exists but unvalidated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: 
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
+        '201':
+          description: User account created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: 
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
+        '409':
+          description: Username is already being used.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username already exists.
+
+        '422':
+          description: User details validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username has to be 6 - 30 characters and can contain your email address.
+                      email:
+                        type: string
+                        example: A valid email address needs to be entered.
+                      password: 
+                        type: string
+                        example: Your password needs to be 6 - 20 characters long and must contain at least one number.
+                      password2:
+                        type: string
+                        example: Your passwords must match.
+                      type:
+                        type: string
+                        example: The user type must be between 1 and 3.
+        '500':
+          $ref: '#/components/responses/SystemError'
+
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userAccountMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+    put:
+      summary: Updates a users account
+      description: Updates a users login details
+      tags:
+        - User Details
+      operationId: updateUser
+      
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userAccountMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: 'Dave123'
+                email:
+                  type: string
+                  example: 'dave@hello.co.uk'
+                password:
+                  type: string
+                  example: 'Hello123!'
+                password2:
+                  type: string
+                  example: 'Hello123!'
+                type:
+                  type: integer
+                  enum: [1,2,3]
+                  example: '1'
+      responses:
+        '200':
+          description: User account already exists but unvalidated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: 
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
+        '201':
+          description: User account created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: 
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
+        '409':
+          description: Username is already being used.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username already exists.
+
+        '422':
+          description: User details validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username has to be 6 - 30 characters and can contain your email address.
+                      email:
+                        type: string
+                        example: A valid email address needs to be entered.
+                      password: 
+                        type: string
+                        example: Your password needs to be 6 - 20 characters long and must contain at least one number.
+                      password2:
+                        type: string
+                        example: Your passwords must match.
+                      type:
+                        type: string
+                        example: The user type must be between 1 and 3.
+        '500':
+          $ref: '#/components/responses/SystemError'
+
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    get:
+      summary: Retrieves a users login details
+      description: Returns the user details for the JWT token passed in.
+      tags:
+        - User Details
+      operationId: getUser
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userAccountMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully found and returned the specified user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows:
+                    type: integer
+                    example: 1
+                  user:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                          example: 3
+                        email:
+                          type: string
+                          example: debbie@microsoft.com
+                        username:
+                          type: string
+                          example: Debbie01
+                        password:
+                          type: string
+                          example: "$2a$10$52ZWTPsjAnT1lVfFtA94AeRRtOQtPn.qsLStaT7pur1WwADrOf1KW"
+                        validate:
+                          type: string
+                          example: N
+                          
+        '401':
+          $ref: '#/components/responses/UserNotSignedIn'
+        '404':
+          $ref: '#/components/responses/UserAccountDoesNotExist'
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    delete:
+      summary: Deletes a users login details
+      description: Returns the user details for the JWT token passed in.
+      tags:
+        - User Details
+      operationId: deleteUser
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userAccountMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '201':
+          description: User account deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Account deleted."
+        '401':
+          $ref: '#/components/responses/UserNotSignedIn'
+        '404':
+          $ref: '#/components/responses/UserAccountDoesNotExist'
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+  /user-auth:
+    summary: Handles a user login in
+    description: The login details for any user ( username and password ).
+    post:
+      summary: Authenticates a user login in
+      description: Tries to authenticate the user so they can access private routes.
+      tags:
+      - Authenticate User
+
+      operationId: authorizeUser
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userAccountMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: 'Dave123'
+                password:
+                  type: string
+                  example: 'Hello123!'
+      responses:
+        '200':
+          description: Logon into the appication with username and password.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: 
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
+        '401':
+          $ref: '#/components/responses/UserNotSignedIn'
+        '404':
+          $ref: '#/components/responses/UserAccountDoesNotExist'
+        '422':
+          description: User details validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username has to be 6 - 30 characters and can contain your email address.
+                      password: 
+                        type: string
+                        example: Your password needs to be 6 - 20 characters long and must contain at least one number.
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    
+                    
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Auth-Token
+
+  responses:
+
+    UserNotSignedIn:
+      description: User is not signed in.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorMsg: 
+                type: string
+                example: "User is not signed in."
+
+    UserAccountDoesNotExist:
+      description: User account does not exist.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorMsg: 
+                type: string
+                example: "Requested user does not exist."
+
+    SystemError:
+      description: System error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorNo: 
+                type: integer
+                example: 1305
+              sqlMessage:
+                type: string
+                example: 'PROCEDURE smt.sp_insert_login_details does not exist'
+              sqlState:
+                type: string
+                example: '42000'      
+
+    DatabaseConnectivityIssue:
+      description: Issue connecting to the database
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorNo: 
+                type: integer
+                example: 1045
+              sqlMessage:
+                type: string
+                example: Access to the databse is denied.
+              sqlState:
+                type: string
+                example: '28000'
+      
+  schemas:
+    ErrorDetails:
+      type: object
+      properties:
+        message:
+          type: string
+        stackTrace:
+          type: string
+      title: ErrorDetails
