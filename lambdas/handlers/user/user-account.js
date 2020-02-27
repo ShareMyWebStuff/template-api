@@ -236,7 +236,6 @@ exports.userAccountHandler = async (event) => {
       res = await tm.createUserAccount(event);
     } else if (event.httpMethod === 'GET') {
       res = await tm.getUserAccount(event);
-
     } else if (event.httpMethod === 'DELETE') {
       res =  await tm.deleteUserAccount(event);
     } else if (event.httpMethod === 'PUT') {
