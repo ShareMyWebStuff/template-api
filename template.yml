@@ -63,12 +63,6 @@ Globals:
         DB_PORT: !Ref DATABASEPORT
         JWT_SECRET: !Ref JWTTUTORSECRET
 
-  # Api:
-    # Cors:
-    #   AllowMethods: "'*'"
-    #   AllowHeaders: "'*'"
-    #   AllowOrigin: "'*'"
-
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
@@ -80,10 +74,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
         Name: sharemytutoring-com
-        # Cors:
-        #   AllowMethods: "'*'"
-        #   AllowHeaders: "'*'"
-        #   AllowOrigin: "'*'"
         DefinitionBody:
           'Fn::Transform':
             Name: 'AWS::Include'

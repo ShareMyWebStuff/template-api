@@ -110,7 +110,7 @@ const userAccountMaintenance = () => {
   async function getUserAccount (event) {
 
     try {
-      const token = event.headers['X-Auth-Token'];
+      const token = event.headers['x-auth-token'];
       if (!token) {
         throw { statusCode: 401, errorMsg: "User is not signed in." };
       }
@@ -139,7 +139,7 @@ const userAccountMaintenance = () => {
   async function deleteUserAccount (event) {
 
     try {
-      const token = event.headers['X-Auth-Token'];
+      const token = event.headers['x-auth-token'];
 
       if (!token) {
         throw { statusCode: 401, errorMsg: "User is not signed in." };
@@ -154,7 +154,6 @@ const userAccountMaintenance = () => {
       }
 
       return { statusCode: 201, msg: "Account deleted."};
-      throw {statusCode: 203, msg: 'Poop'};
     } catch (err) {
       throw err;
     }
@@ -170,7 +169,7 @@ const userAccountMaintenance = () => {
 
     try {
 
-      const token = event.headers['X-Auth-Token'];
+      const token = event.headers['x-auth-token'];
       if (!token) {
         throw { statusCode: 401, errorMsg: "User is not signed in." };
       }
@@ -229,6 +228,7 @@ exports.userAccountHandler = async (event) => {
   let res;
 
   try {
+    console.log ('OPTIONS - 1');
     
     const tm = userAccountMaintenance ();
 
@@ -241,19 +241,23 @@ exports.userAccountHandler = async (event) => {
     } else if (event.httpMethod === 'PUT') {
       res =  await tm.updateUserAccount(event);
     } else if (event.httpMethod === 'OPTIONS') {
+      console.log ('OPTIONS - 2');
       res.statusCode = 201;
       res.body = JSON.stringify({ msg: `${event.httpMethod} sent.`});
     } else {
+      console.log ('OPTIONS - 3');
       res.statusCode = 405;
       res.body = JSON.stringify({ errorMsg: `HttpMethod (${event.httpMethod}) was used and not handled.`});
     }
 
+    console.log ('OPTIONS - 4');
     response.statusCode = res.statusCode || 500;
     delete res.statusCode;
     response.body = JSON.stringify(res);
 
   } catch (err) {
 
+    console.log ('OPTIONS - 5');
     response.statusCode = err.statusCode || 500;
     if (response.statusCode === undefined) response.statusCode = 500;
     delete err.statusCode;
@@ -261,14 +265,22 @@ exports.userAccountHandler = async (event) => {
 
   }
 
+  console.log ('OPTIONS - 6');
   if (response.statusCode === undefined) response.statusCode = 500;
   response.headers = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, PUT, GET, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
+    'Access-Control-Expose-Headers': 'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Credentials': true,
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+      // 'Content-Type': 'application/json',
+      // 'Access-Control-Allow-Origin': '*',
+      // 'Access-Control-Allow-Methods': 'POST, PUT, GET, DELETE, OPTIONS',
+      // 'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
   };
 
+  console.log ('OPTIONS - 7');
+  console.log (response);
   return response;
 };
 

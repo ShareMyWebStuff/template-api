@@ -151,7 +151,7 @@ paths:
             statusCode: 200
 
       parameters:
-        - name: X-Auth-Token
+        - name: x-auth-token
           in: header
           description: JWT for the client id
           required: true
@@ -184,6 +184,10 @@ paths:
       responses:
         '200':
           description: User account already exists but unvalidated.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
           content:
             application/json:
               schema:
@@ -194,6 +198,10 @@ paths:
                     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
         '201':
           description: User account created.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
           content:
             application/json:
               schema:
@@ -204,6 +212,10 @@ paths:
                     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE1ODIxOTI5MzUsImV4cCI6MTU4MjU1MjkzNX0.QBs8ViRCqU4fCyngfbaAuegbhUU8I-E3lcBHr2Q1UOc"
         '409':
           description: Username is already being used.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
           content:
             application/json:
               schema:
@@ -218,6 +230,10 @@ paths:
 
         '422':
           description: User details validation issues.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
           content:
             application/json:
               schema:
@@ -269,7 +285,7 @@ paths:
             statusCode: 200
 
       parameters:
-        - name: X-Auth-Token
+        - name: x-auth-token
           in: header
           description: JWT for the client id
           required: true
@@ -279,6 +295,10 @@ paths:
       responses:
         '200':
           description: Successfully found and returned the specified user.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
           content:
             application/json:
               schema:
@@ -339,7 +359,7 @@ paths:
             statusCode: 200
 
       parameters:
-        - name: X-Auth-Token
+        - name: x-auth-token
           in: header
           description: JWT for the client id
           required: true
@@ -349,6 +369,10 @@ paths:
       responses:
         '201':
           description: User account deleted.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
           content:
             application/json:
               schema:
@@ -365,6 +389,44 @@ paths:
           $ref: '#/components/responses/SystemError'
         '503':
           $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    options:
+
+      summary: User options.
+      description: User options.
+      tags:
+        - User Details
+      operationId: optionUser
+
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,x-auth-token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
 
   /user-auth:
     summary: Handles a user login in
@@ -447,12 +509,17 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: X-Auth-Token
+      name: x-auth-token
 
   responses:
 
+
     UserNotSignedIn:
       description: User is not signed in.
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: "string"
       content:
         application/json:
           schema:
@@ -464,6 +531,10 @@ components:
 
     UserAccountDoesNotExist:
       description: User account does not exist.
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: "string"
       content:
         application/json:
           schema:
@@ -475,6 +546,10 @@ components:
 
     SystemError:
       description: System error
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: "string"
       content:
         application/json:
           schema:
@@ -485,13 +560,17 @@ components:
                 example: 1305
               sqlMessage:
                 type: string
-                example: 'PROCEDURE smt.sp_insert_login_details does not exist'
+                example: 'PROCEDURE <database>.<procedure> does not exist'
               sqlState:
                 type: string
                 example: '42000'      
 
     DatabaseConnectivityIssue:
       description: Issue connecting to the database
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: "string"
       content:
         application/json:
           schema:
@@ -506,13 +585,9 @@ components:
               sqlState:
                 type: string
                 example: '28000'
-      
+
   schemas:
-    ErrorDetails:
-      type: object
-      properties:
-        message:
-          type: string
-        stackTrace:
-          type: string
-      title: ErrorDetails
+    Empty:
+      title: "Empty Schema"
+      type: "object"
+      

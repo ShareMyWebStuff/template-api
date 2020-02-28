@@ -15,7 +15,7 @@ const validateAccount = () => {
 
     try {
       // Check the user is logged in
-      const token = event.headers['X-Auth-Token'];
+      const token = event.headers['x-auth-token'];
 
       if (!token) {
         return { statusCode: 200, message: JSON.stringify( { msg: "User is not signed in."} ) };
