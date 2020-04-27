@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require ('bcryptjs');
 const db = require ('/opt/nodejs/services/db').mysqlDB();
+const utils = require('/opt/nodejs/utils/utilities').utils();
 const userAccount = require ('/opt/nodejs/models/modelUserAccount').userAccountModel();
-const validator = require ('/opt/nodejs/validation/validationUser');
+const validator = require ('/opt/nodejs/validation/validationUser').validationFns();
 
 const userAccountMaintenance = () => {
 
@@ -63,7 +63,6 @@ const userAccountMaintenance = () => {
   async function createUserAccount (event) {
 
     try {
-
       // Validate user details
       const validationStatus = validateFields (event);
       if (validationStatus.noErrors > 0){
@@ -71,7 +70,6 @@ const userAccountMaintenance = () => {
       }
 
       await db.connectToDB();
-      // Check the username isnt already used
       const { username, email, password, type } = validationStatus;
       let userDets = await userAccount.selectUserAccountByUsername (username);
       if (userDets.rows === 1 && userDets.user[0].validated === 'N') {
@@ -86,7 +84,6 @@ const userAccountMaintenance = () => {
         throw { statusCode: 409, errorMsg: {'username': "Username already exists."} };
       }
 
-      // Create new user object
       const newUser = { username, email, password, type }; 
       const salt = await bcrypt.genSalt(10);
       newUser.password = await bcrypt.hash (password, salt);
@@ -94,7 +91,7 @@ const userAccountMaintenance = () => {
       const payload = {
         user_id:userDets.insertedId
       }
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 360000});
+      const token = utils.createToken( payload, process.env.JWT_SECRET )
 
       return { statusCode: (userDets.affectedRows === 1 ? 201 : 200), token };
     } catch (err) {
@@ -110,23 +107,19 @@ const userAccountMaintenance = () => {
   async function getUserAccount (event) {
 
     try {
-      const token = event.headers['x-auth-token'];
-      if (!token) {
-        throw { statusCode: 401, errorMsg: "User is not signed in." };
-      }
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = utils.verifyJWTToken (event, process.env.JWT_SECRET);
       await db.connectToDB();
 
       const user = await userAccount.selectUserAccountById({ user_id: decoded.user_id} );
       if (user.rows !== 1) {
         throw { statusCode: 404, errorMsg: "Requested user does not exist." };
       }
+      delete user.user[0].password;
 
-      return { statusCode: 200, rows: user.rows, user: user.user} ;
+      return { statusCode: 200, user: user.user[0]} ;
 
     } catch (err) {
-      throw err;
+      throw { statusCode: 404, errorMsg: "Requested user does not exist." };
     }
 
   }
@@ -139,12 +132,7 @@ const userAccountMaintenance = () => {
   async function deleteUserAccount (event) {
 
     try {
-      const token = event.headers['x-auth-token'];
-
-      if (!token) {
-        throw { statusCode: 401, errorMsg: "User is not signed in." };
-      }
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = utils.verifyJWTToken (event, process.env.JWT_SECRET);
 
       await db.connectToDB();
 
@@ -155,7 +143,7 @@ const userAccountMaintenance = () => {
 
       return { statusCode: 201, msg: "Account deleted."};
     } catch (err) {
-      throw err;
+      throw { statusCode: 404, errorMsg: "Requested user does not exist." };
     }
 
   }
@@ -169,11 +157,8 @@ const userAccountMaintenance = () => {
 
     try {
 
-      const token = event.headers['x-auth-token'];
-      if (!token) {
-        throw { statusCode: 401, errorMsg: "User is not signed in." };
-      }
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log ('updateUserAccount 1');
+      const decoded = utils.verifyJWTToken (event, process.env.JWT_SECRET);
 
       // Validate user details
       const validationStatus = validateFields (event);
@@ -190,6 +175,23 @@ const userAccountMaintenance = () => {
         throw { statusCode: 404, errorMsg: "Requested user does not exist." };
       }
 
+      // if username has changed, check its not already taken
+      if ( username !== userDets.user[0].username) {
+        let userDets = await userAccount.selectUserAccountByUsername (username);
+        if (userDets.rows === 1 && userDets.user[0].validated === 'N') {
+          if ( userDets.user[0].created_mins < 240 ) {
+              throw { statusCode: 409, errorMsg: {'username': "Username reserved, if this was you re-enter username with original email."} };
+          } else {
+            userDets = await userAccount.deleteUserAccount(userDets.user[0].user_id);
+          }
+        } else if (userDets.rows === 1) {
+          throw { statusCode: 409, errorMsg: {'username': "Username already exists."} };
+        } else if (userDets.rows > 1) {
+          throw { statusCode: 409, errorMsg: {'username': "Username already exists."} };
+        }
+      }
+
+
       // Create new user object
       const newUser = { username, email, password, type }; 
 
@@ -204,7 +206,7 @@ const userAccountMaintenance = () => {
       }
       return { statusCode: 200, msg: "Account unchanged."};
     } catch (err) {
-      throw err;
+      throw { statusCode: 404, errorMsg: "Requested user does not exist." };
     }
   }
   return {
@@ -229,6 +231,7 @@ exports.userAccountHandler = async (event) => {
 
   try {
     console.log ('OPTIONS - 1');
+    console.log (event);
     
     const tm = userAccountMaintenance ();
 
@@ -280,7 +283,8 @@ exports.userAccountHandler = async (event) => {
   };
 
   console.log ('OPTIONS - 7');
+  console.log ('BACKEND /create-account');
   console.log (response);
-  return response;
+return response;
 };
 

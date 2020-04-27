@@ -1,6 +1,8 @@
 'use strict';
 const validator = require ('validator');
 
+const validationFns = () => {
+
     // 
     // Function : stringBreakdown
     //
@@ -198,7 +200,7 @@ const validator = require ('validator');
     const validateLastname = lastname => {
 
         if ( lastname === undefined ) {
-            return { valid: false, msg: 'First name is not set.' };
+            return { valid: false, msg: 'Last name is not set.' };
         } else if ( lastname.length < 2 ) {
             return { valid: false, msg: 'Last name must be at least 2 characters long.' };
         } else if ( lastname.length > 50 ) {
@@ -330,7 +332,7 @@ const validator = require ('validator');
         return { valid: true };
     }
 
-        // 
+    //
     // Function : validateCountry
     //
     // Checks whether the country is valid
@@ -389,19 +391,28 @@ const validator = require ('validator');
         return { valid: true };
     }
 
-module.exports.validateUsername     = validateUsername;
-module.exports.validateEmail        = validateEmail;
-module.exports.validatePassword     = validatePassword;
-module.exports.validateUserType     = validateUserType;
-module.exports.validateTitle        = validateTitle;
-module.exports.validateFirstname    = validateFirstname;
-module.exports.validateLastname     = validateLastname;
-module.exports.validateGender       = validateGender;
-module.exports.validateAddress1     = validateAddress1;
-module.exports.validateAddress2     = validateAddress2;
-module.exports.validateTown         = validateTown;
-module.exports.validateCounty       = validateCounty;
-module.exports.validatePostcode     = validatePostcode;
-module.exports.validateCountry      = validateCountry;
-module.exports.validatePhone        = validatePhone;
-module.exports.validateMobile       = validateMobile;
+
+    // 
+    // These are the functions we are exposing from the database closure
+    // 
+    return {
+        validateUsername,
+        validateEmail,
+        validatePassword,
+        validateUserType,
+        validateTitle,
+        validateFirstname,
+        validateLastname,
+        validateGender,
+        validateAddress1,
+        validateAddress2,
+        validateTown,
+        validateCounty,
+        validatePostcode,
+        validateCountry,
+        validatePhone,
+        validateMobile
+    };
+}
+
+module.exports.validationFns = validationFns;

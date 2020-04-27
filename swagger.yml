@@ -11,8 +11,14 @@ servers:
 tags:
   - name: User Details
     description: Maintaining user details (CRUD).
-  - name: Authenticate User
+  - name: User Login
     description: Handles users login in to the application. 
+  - name: User Contact Details
+    description: Maintains the users contact details.
+  - name: User Media Verification
+    description: Allows the user to verify the email or mobile number they are using.
+  - name: Static Data - Subjects
+    description: Handles retrieving the subjects and subject categories. 
 
 paths:
 
@@ -151,7 +157,7 @@ paths:
             statusCode: 200
 
       parameters:
-        - name: x-auth-token
+        - name: X-Auth-Token
           in: header
           description: JWT for the client id
           required: true
@@ -285,7 +291,7 @@ paths:
             statusCode: 200
 
       parameters:
-        - name: x-auth-token
+        - name: X-Auth-Token
           in: header
           description: JWT for the client id
           required: true
@@ -327,7 +333,7 @@ paths:
                         validate:
                           type: string
                           example: N
-                          
+
         '401':
           $ref: '#/components/responses/UserNotSignedIn'
         '404':
@@ -359,7 +365,7 @@ paths:
             statusCode: 200
 
       parameters:
-        - name: x-auth-token
+        - name: X-Auth-Token
           in: header
           description: JWT for the client id
           required: true
@@ -421,7 +427,7 @@ paths:
             statusCode: "200"
             responseParameters:
               method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,x-auth-token'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Auth-Token'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
         passthroughBehavior: "when_no_match"
         requestTemplates:
@@ -432,12 +438,11 @@ paths:
     summary: Handles a user login in
     description: The login details for any user ( username and password ).
     post:
-      summary: Authenticates a user login in
+      summary: Authenticates a user login in.
       description: Tries to authenticate the user so they can access private routes.
       tags:
-      - Authenticate User
-
-      operationId: authorizeUser
+        - User Login
+      operationId: userLogin
 
       x-amazon-apigateway-request-validators:
         basic:
@@ -446,7 +451,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws_proxy"
         httpMethod: POST
-        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userAccountMaintenanceTest/invocations"
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userLoginTest/invocations"
         passThroughBehaviour: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         responses:
@@ -502,17 +507,738 @@ paths:
         '503':
           $ref: '#/components/responses/DatabaseConnectivityIssue'
 
+  /subjects:
+    summary: Subjects and subject categories
+    description: Retrieves the subjects and subject categories/
+
+    get:
+      summary: Retrieves the subjects and subjects categories
+      description: Retrieves the subjects and subjects categories
+      tags:
+        - Static Data - Subjects
+      operationId: getSubjects
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:staticDataSubjectsTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      responses:
+        '200':
+          description: Successfully found and returned the specified user.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subjects_rows:
+                    type: integer
+                    example: 1
+                  categories_rows:
+                    type: integer
+                    example: 1
+                  subjects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subject_id:
+                          type: integer
+                          example: 3
+                        subject_category_id:
+                          type: integer
+                          example: 1
+                        subject:
+                          type: string
+                          example: Accounting
+                        subject_category:
+                          type: string
+                          example: Academic
+                  subjects_categories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subject_level_id:
+                          type: integer
+                          example: 3
+                        subject_level:
+                          type: string
+                          example: GCSE
+                        subject_category:
+                          type: string
+                          example: GCSE
+
+        '404':
+          $ref: '#/components/responses/StaticdataSubjectsDoesNotExist'
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    options:
+
+      summary: User options.
+      description: User options.
+      tags:
+        - Static Data - Subjects
+      operationId: optionSubjects
+
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Auth-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
+
+  /user-contact-details:
+    summary: The users contact details, name, address and phone numbers
+    description: This path handles the CRUD associated with the users contact details.
     
-                    
+    post:
+      summary: Creates the users contact details.
+      description: Creates the users contact details.
+      tags:
+        - User Contact Details
+      operationId: createUserContactDetails
+
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userContactDetailsMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: 'Mrs'
+                firstname:
+                  type: string
+                  example: 'Vickie'
+                lastname:
+                  type: string
+                  example: 'Ferguson'
+                gender:
+                  type: string
+                  example: 'F'
+                address1:
+                  type: string
+                  example: '10 Mount Herman Close'
+                address2:
+                  type: string
+                  example: ''
+                town:
+                  type: string
+                  example: 'Woking'
+                county:
+                  type: string
+                  example: 'Surrey'
+                postcode:
+                  type: string
+                  example: 'GU22 7AU'
+                country:
+                  type: string
+                  example: 'United Kingdom'
+                phone:
+                  type: string
+                  example: '01483 755899'
+                mobile:
+                  type: string
+                  example: '07973 123456'
+                domainName:
+                  type: string
+                  example: 'sharemytutoring.com'
+                websiteName:
+                  type: string
+                  example: 'ShareMyTutoring'
+                password:
+                  type: string
+                  example: 'mypassword'
+      responses:
+        '200':
+          description: User contact details already exists.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Account created"
+        '201':
+          description: User Contact Details created.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Account created"
+        '401':
+          $ref: '#/components/responses/UserNotSignedIn'
+
+        '422':
+          description: User contact details validation issues.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        example: 'Title is not a valid title.'
+                      firstname:
+                        type: string
+                        example: 'First name must be less than 50 characters.'
+                      lastname:
+                        type: string
+                        example: 'Last name must be less than 50 characters.'
+                      gender:
+                        type: string
+                        example: 'Enter a valid gender ( M / F ).'
+                      address1:
+                        type: string
+                        example: 'The first line of your address needs to entered.'
+                      address2:
+                        type: string
+                        example: 'The address must be less than 80 characters.'
+                      town:
+                        type: string
+                        example: 'Your town needs to entered.'
+                      county:
+                        type: string
+                        example: 'The county must be at least 2 characters long.'
+                      postcode:
+                        type: string
+                        example: 'Your postcode must be less than 11 characters.'
+                      country:
+                        type: string
+                        example: 'You must enter a valid country.'
+                      phone:
+                        type: string
+                        example: 'Your phone number must be less than 20 characters.'
+                      mobile:
+                        type: string
+                        example: 'Your mobile must be less than 20 characters.'
+
+        '500':
+          $ref: '#/components/responses/SystemError'
+
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    put:
+      summary: Updates the users contact details.
+      description: Updates the users contact details.
+      tags:
+        - User Contact Details
+      operationId: updateUserContactDetails
+      
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userContactDetailsMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: 'Mrs'
+                firstname:
+                  type: string
+                  example: 'Vickie'
+                lastname:
+                  type: string
+                  example: 'Ferguson'
+                gender:
+                  type: string
+                  example: 'F'
+                address1:
+                  type: string
+                  example: '10 Mount Herman Close'
+                address2:
+                  type: string
+                  example: ''
+                town:
+                  type: string
+                  example: 'Woking'
+                county:
+                  type: string
+                  example: 'Surrey'
+                postcode:
+                  type: string
+                  example: 'GU22 7AU'
+                country:
+                  type: string
+                  example: 'United Kingdom'
+                phone:
+                  type: string
+                  example: '01483 755899'
+                mobile:
+                  type: string
+                  example: '07973 123456'
+      responses:
+        '200':
+          description: User contact details updated.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Account created"
+        '201':
+          description: User contact details created.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Account created"
+
+        '422':
+          description: User contact details validation issues.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        example: 'Title is not a valid title.'
+                      firstname:
+                        type: string
+                        example: 'First name must be less than 50 characters.'
+                      lastname:
+                        type: string
+                        example: 'Last name must be less than 50 characters.'
+                      gender:
+                        type: string
+                        example: 'Enter a valid gender ( M / F ).'
+                      address1:
+                        type: string
+                        example: 'The first line of your address needs to entered.'
+                      address2:
+                        type: string
+                        example: 'The address must be less than 80 characters.'
+                      town:
+                        type: string
+                        example: 'Your town needs to entered.'
+                      county:
+                        type: string
+                        example: 'The county must be at least 2 characters long.'
+                      postcode:
+                        type: string
+                        example: 'Your postcode must be less than 11 characters.'
+                      country:
+                        type: string
+                        example: 'You must enter a valid country.'
+                      phone:
+                        type: string
+                        example: 'Your phone number must be less than 20 characters.'
+                      mobile:
+                        type: string
+                        example: 'Your mobile must be less than 20 characters.'
+
+        '500':
+          $ref: '#/components/responses/SystemError'
+
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    get:
+      summary: Retrieves the users contact details.
+      description: Returns the users contact details.
+      tags:
+        - User Contact Details
+      operationId: getUserContactDetails
+
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userContactDetailsMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      responses:
+        '200':
+          description: Successfully found and returned the user contact details.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows:
+                    type: integer
+                    example: 1
+                  user:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                          example: 3
+                        title:
+                          type: string
+                          example: "Mr"
+                        firstname:
+                          type: string
+                          example: "John"
+                        lastname:
+                          type: string
+                          example: "Higgins"
+                        gender:
+                          type: string
+                          example: "M"
+                        location_id:
+                          type: integer
+                          example: 123650
+                        address1:
+                          type: string
+                          example: "40 The High Street"
+                        address2:
+                          type: string
+                          example: ""
+                        town:
+                          type: string
+                          example: "Horsell"
+                        county:
+                          type: string
+                          example: "Surrey"
+                        postcode:
+                          type: string
+                          example: "GU21 5TF"
+                        country_id:
+                          type: integer
+                          example: 238
+                        phone:
+                          type: string
+                          example: "01483 755899"
+                        mobile:
+                          type: string
+                          example: "07973 452378"
+
+        '401':
+          $ref: '#/components/responses/UserNotSignedIn'
+        '404':
+          $ref: '#/components/responses/UserAccountDoesNotExist'
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    delete:
+      summary: Deletes the users contact details.
+      description: Deletes the users contact details.
+      tags:
+        - User Contact Details
+      operationId: deleteUserContactDetails
+
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: JWT for the client id
+          required: true
+          schema:
+            type: string
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userContactDetailsMaintenanceTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      responses:
+        '201':
+          description: User contact details deleted.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "User contact details deleted."
+        '401':
+          $ref: '#/components/responses/UserNotSignedIn'
+        '404':
+          $ref: '#/components/responses/UserAccountDoesNotExist'
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+      - User Contact Details
+      responses:
+        201:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Auth-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''*'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            responseTemplates:
+              application/json: |
+                {}
+
+  /user-media-verify:
+    summary: Verifies users email address or mobile phone
+    description: Verifies the user owns the email address or mobile phone
+    post:
+      summary: Verifies email or mobile.
+      description: Verifies the user owns the specified email or mobile phone.
+      tags:
+        - User Media Verification
+      operationId: userMediaVerification
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userMediaVerificationTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                validationCode:
+                  type: string
+                  example: 'as43dsfs5243tsfdfdhsdfsfg'
+
+      responses:
+        '201':
+          description: Users media verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Email verified"
+        '404':
+          description: Validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      validationCode:
+                        type: string
+                        example: Validation code error.
+        '422':
+          description: Validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      validationCode:
+                        type: string
+                        example: Validation code error.
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+
+
 components:
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: x-auth-token
+      name: X-Auth-Token
 
   responses:
-
 
     UserNotSignedIn:
       description: User is not signed in.
@@ -543,6 +1269,21 @@ components:
               errorMsg: 
                 type: string
                 example: "Requested user does not exist."
+
+    StaticdataSubjectsDoesNotExist:
+      description: Static Data - subjects do not exist.
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: "string"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorMsg: 
+                type: string
+                example: "Static Data - Subjects do not exist."
 
     SystemError:
       description: System error

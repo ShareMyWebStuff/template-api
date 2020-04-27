@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repository handles thes the creation of the AWS API gateway and the backend lambda code. 
+This repository handles the creation of the AWS API gateway and the backend lambda code. 
 - API Gateway
 - Lambda Layers
 - Lambda Functions

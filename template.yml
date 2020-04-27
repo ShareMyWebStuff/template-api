@@ -45,6 +45,11 @@ Parameters:
     Default: bestTutoringSite
 
 Globals:
+  Api:
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
   Function:
     Runtime: nodejs10.x
     MemorySize: 128
@@ -102,7 +107,7 @@ Resources:
       Handler: user-account.userAccountHandler
       CodeUri: lambdas/handlers/user
       Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
-      Description: handles the tutor creation, updating, deleting and retrieval.
+      Description: handles the user creation, updating, deleting and retrieval.
       Layers:
       - !Ref SMTCommonLayer
       - !Ref SMTUserAccountLayer
@@ -114,11 +119,99 @@ Resources:
             Path: /user
             Method: ANY
 
+  #
+  # User Login
+  #
+  userLogin:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userLoginTest
+      Handler: user-login.userLogin
+      CodeUri: lambdas/handlers/user
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: handles the user creation, updating, deleting and retrieval.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTUserAccountLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /user-auth
+            Method: ANY
+
+  #
+  # User Media Verification
+  #
+  userMediaVerification:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userMediaVerificationTest
+      Handler: user-media-verification.validateMedia
+      CodeUri: lambdas/handlers/user
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: handles the user creation, updating, deleting and retrieval.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTUserAccountLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /user-media-verify
+            Method: ANY
+
+  #
+  # User Contact Details
+  #
+  userContactDetailsMaintenance:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userContactDetailsMaintenanceTest
+      Handler: user-contact-details.userContactDetailsHandler
+      CodeUri: lambdas/handlers/user
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: handles the tutor creation, updating, deleting and retrieval.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTUserAccountLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /user-contact-details
+            Method: ANY
+
+  #
+  # Static Data - Subjects
+  #
+  staticDataSubjects:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staticDataSubjectsTest
+      Handler: subjects.subjectsHandler
+      CodeUri: lambdas/handlers/static-data/subjects
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: handles the subjects and subjects categories retrieval.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTSubjectsLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /subjects
+            Method: ANY
+
   SMTCommonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: smt-common-test
-      Description: Contains the common modules for the functions a our mySQL database handlers.
+      Description: Contains the common modules for the functions and our mySQL database handlers.
       ContentUri: layers/common/
       CompatibleRuntimes:
       - nodejs10.x
@@ -129,8 +222,19 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: smt-user-account-test
-      Description: Contains the code for the user account database model and the user account validation
+      Description: Contains the code for the user account functionality and database models.
       ContentUri: layers/user-account/
+      CompatibleRuntimes:
+      - nodejs10.x
+      - nodejs12.x
+      RetentionPolicy: Delete
+
+  SMTSubjectsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: smt-static-data-subjects-test
+      Description: Contains the code for handling the subjects database model
+      ContentUri: layers/static-data/subjects/
       CompatibleRuntimes:
       - nodejs10.x
       - nodejs12.x

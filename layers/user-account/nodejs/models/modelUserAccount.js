@@ -22,7 +22,7 @@ const userAccountModel = () => {
     async function selectUserAccountByUsername (userName) {
 
         try {
-            const sql = `SELECT user_id, email, username, type, password, validated, TIMESTAMPDIFF(MINUTE, create_date, now()) as created_mins FROM smt_user_login where username = '${userName}'`;
+            const sql = `SELECT user_id, email, username, type, password, validated, TIMESTAMPDIFF(MINUTE, create_date, now()) as created_mins FROM user_login where username = '${userName}'`;
             const res = await db.selectData (sql);
 
             const userDets = {
@@ -61,7 +61,7 @@ const userAccountModel = () => {
     async function selectUserAccountById (whereObj) {
 
         try {
-            const sql = 'SELECT * FROM smt_user_login '  + db.createWhereClause (whereObj);
+            const sql = 'SELECT * FROM user_login '  + db.createWhereClause (whereObj);
             const res = await db.selectData (sql);
 
             const userDets = {
@@ -105,7 +105,7 @@ const userAccountModel = () => {
             if (user !== undefined)
             {
 
-                const sql = `CALL sp_insert_login_details( '${user.email}', '${user.username}', ${user.type}, '${user.password}', 'N' ); `;
+                const sql = `CALL sp_user_login_ins ( '${user.email}', '${user.username}', ${user.type}, '${user.password}', 'N', 'N', 'N' ); `;
                 const res = await db.insertProcedure( sql );
 
                 if ( res.affectedRows === 1 || res.changedRows === 1 ) {
@@ -143,8 +143,25 @@ const userAccountModel = () => {
     async function updateUserAccount (user_id, user) {
 
         try {
+            console.log ('updateUserAccount 1');
             if (user !== undefined) {
-                const sql = `CALL sp_update_login_details( ${user_id}, '${user.email}', '${user.username}', ${user.type}, '${user.password}', 'N' ); `;
+                // console.log ('updateUserAccount 1');
+                const email            = (user.email ?              `'${user.email}'`:              "null");
+                // console.log ('updateUserAccount 1');
+                const username         = (user.username ?           `'${user.username}'`:           "null");
+                // console.log ('updateUserAccount 1');
+                const type             = (user.type ?               `${user.type}`:                 "null");
+                // console.log ('updateUserAccount 1');
+                const password         = (user.password ?           `'${user.password}'`:           "null");
+                // console.log ('updateUserAccount 1');
+                const validated        = (user.validated ?          `'${user.validated}'`:          "null");
+                // console.log ('updateUserAccount 1');
+                const validated_email  = (user.validated_email ?    `'${user.validated_email}'`:    "null");
+                // console.log ('updateUserAccount 1');
+                const validated_mobile = (user.validated_mobile ?   `'${user.validated_mobile}'`:   "null");
+                // console.log ('updateUserAccount 1');
+                const sql = `CALL sp_user_login_upd ( ${user_id}, ${email}, ${username}, ${type}, ${password}, ${validated}, ${validated_email}, ${validated_mobile} ); `;
+// console.log (sql);
                 const res = await db.insertProcedure( sql );
     
                 if ( res.affectedRows === 1 || res.changedRows === 1 ) {
@@ -180,7 +197,7 @@ const userAccountModel = () => {
 
         try {
 
-            const sql = 'DELETE FROM smt_user_login ' + db.createWhereClause ( { user_id } );
+            const sql = 'DELETE FROM user_login ' + db.createWhereClause ( { user_id } );
             const res = await db.saveData(sql);
             console.log ('Tutor Delete Return Record');
             console.log (res);
