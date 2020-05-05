@@ -95,7 +95,7 @@ const userLogin = () => {
 exports.userLogin = async (event) => {
 
     const response = {};
-    let res;
+    let res ={};
 
     try {
       const ul = userLogin ();
@@ -107,7 +107,7 @@ exports.userLogin = async (event) => {
         res.body = JSON.stringify({ errorMsg: {msg: `${event.httpMethod} sent.`}});
       } else {
         res.statusCode = 405;
-        res.body = JSON.stringify({ errorMsg: {msg: `HttpMethod (${event.httpMethod}) was used and not handled.` } });
+        res.body = JSON.stringify({ errorMsg: `HttpMethod (${event.httpMethod}) was used and not handled.`});
       }
 
       response.statusCode = res.statusCode || 500;

@@ -25,14 +25,17 @@ const utils = () => {
 
         const token = (event.headers['x-auth-token'] ? event.headers['x-auth-token'] : event.headers['X-Auth-Token'] );
   
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if ( token === '' ) {
+          throw { statusCode: 401, errorMsg: "User is not signed in." };
+        }
+        decoded = jwt.verify(token, secret);
         return decoded;
 
       } catch (err) {
       if ( err.message === undefined ) {
         throw err;
         } else {
-          throw { statusCode: 500, msg: `JWT - err.message` };
+          throw { statusCode: 409, errorMsg: "User is not signed in." };
         }
 
       }

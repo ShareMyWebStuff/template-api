@@ -11,10 +11,11 @@
         "validator": "^12.1.0"
     },
     "devDependencies": {
+        "axios": "^0.19.2",
         "dotenv": "^8.2.0",
         "jest": "^24.9.0"
     },
     "scripts": {
-        "test": "jest"
+        "test": "jest --env=node --watch"
     }
 }

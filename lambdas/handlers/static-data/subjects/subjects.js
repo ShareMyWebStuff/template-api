@@ -41,10 +41,9 @@ const subjects = () => {
   exports.subjectsHandler = async (event) => {
   
     const response = {};
-    let res;
+    let res = {};
   
     try {
-      
       const sub = subjects ();
   
       if (event.httpMethod === 'GET') {
@@ -67,7 +66,6 @@ const subjects = () => {
       if (response.statusCode === undefined) response.statusCode = 500;
       delete err.statusCode;
       response.body = JSON.stringify(err);
-  
     }
   
     if (response.statusCode === undefined) response.statusCode = 500;

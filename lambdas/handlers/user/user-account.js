@@ -119,7 +119,9 @@ const userAccountMaintenance = () => {
       return { statusCode: 200, user: user.user[0]} ;
 
     } catch (err) {
-      throw { statusCode: 404, errorMsg: "Requested user does not exist." };
+      console.log ('ERROR ERROR');
+      console.log ( err);
+      throw err
     }
 
   }
@@ -133,17 +135,13 @@ const userAccountMaintenance = () => {
 
     try {
       const decoded = utils.verifyJWTToken (event, process.env.JWT_SECRET);
-
       await db.connectToDB();
 
       const userDets = await userAccount.deleteUserAccount(decoded.user_id);
-      if (userDets.affectedRows !== 1) {
-        return { statusCode: 404, errorMsg: "The account does not exist."};
-      }
 
-      return { statusCode: 201, msg: "Account deleted."};
+      return userDets;
     } catch (err) {
-      throw { statusCode: 404, errorMsg: "Requested user does not exist." };
+      return { statusCode: 404, errorMsg: "Requested user does not exist." };
     }
 
   }
@@ -157,7 +155,6 @@ const userAccountMaintenance = () => {
 
     try {
 
-      console.log ('updateUserAccount 1');
       const decoded = utils.verifyJWTToken (event, process.env.JWT_SECRET);
 
       // Validate user details
@@ -206,7 +203,7 @@ const userAccountMaintenance = () => {
       }
       return { statusCode: 200, msg: "Account unchanged."};
     } catch (err) {
-      throw { statusCode: 404, errorMsg: "Requested user does not exist." };
+      throw err;
     }
   }
   return {
@@ -227,11 +224,9 @@ const userAccountMaintenance = () => {
 exports.userAccountHandler = async (event) => {
 
   const response = {};
-  let res;
+  let res = {};
 
   try {
-    console.log ('OPTIONS - 1');
-    console.log (event);
     
     const tm = userAccountMaintenance ();
 
@@ -244,23 +239,19 @@ exports.userAccountHandler = async (event) => {
     } else if (event.httpMethod === 'PUT') {
       res =  await tm.updateUserAccount(event);
     } else if (event.httpMethod === 'OPTIONS') {
-      console.log ('OPTIONS - 2');
       res.statusCode = 201;
       res.body = JSON.stringify({ msg: `${event.httpMethod} sent.`});
     } else {
-      console.log ('OPTIONS - 3');
       res.statusCode = 405;
       res.body = JSON.stringify({ errorMsg: `HttpMethod (${event.httpMethod}) was used and not handled.`});
     }
 
-    console.log ('OPTIONS - 4');
     response.statusCode = res.statusCode || 500;
     delete res.statusCode;
     response.body = JSON.stringify(res);
 
   } catch (err) {
 
-    console.log ('OPTIONS - 5');
     response.statusCode = err.statusCode || 500;
     if (response.statusCode === undefined) response.statusCode = 500;
     delete err.statusCode;
@@ -268,7 +259,6 @@ exports.userAccountHandler = async (event) => {
 
   }
 
-  console.log ('OPTIONS - 6');
   if (response.statusCode === undefined) response.statusCode = 500;
   response.headers = {
     'Access-Control-Expose-Headers': 'Access-Control-Allow-Origin',
@@ -282,9 +272,7 @@ exports.userAccountHandler = async (event) => {
       // 'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
   };
 
-  console.log ('OPTIONS - 7');
-  console.log ('BACKEND /create-account');
   console.log (response);
-return response;
+  return response;
 };
 

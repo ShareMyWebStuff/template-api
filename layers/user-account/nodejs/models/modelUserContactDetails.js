@@ -67,7 +67,7 @@ const userContactDetailsModel = () => {
             {
                 const { user_id, title, firstname, lastname, gender, address1, address2, town, county, postcode, country, phone, mobile } = userContactDets;
                 const sql = `CALL sp_user_contact_dets_ins( ${user_id}, '${title}', '${firstname}', '${lastname}', '${gender}', '${address1}', '${address2}', '${town}', '${county}', '${postcode}', '${country}', '${phone}', '${mobile}' ); `;
-
+console.log (sql);
                 const res = await db.insertProcedure( sql );
 
                 if ( res.affectedRows === 1 || res.changedRows === 1 ) {

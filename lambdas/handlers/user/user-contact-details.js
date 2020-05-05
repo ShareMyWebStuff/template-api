@@ -226,7 +226,6 @@ console.log (params);
   async function createContactDets (event) {
 
     try {
-
       const decoded = utils.verifyJWTToken (event, process.env.JWT_SECRET);
 
       const validationStatus = validateFields (event);
@@ -248,9 +247,13 @@ console.log (params);
 
       const verificationCode = crypto.randomBytes(20).toString('hex');
       const userMediaRes = await userMedia.saveUserMediaVerification ({userId: decoded.user_id,  mediaType: 'Email', verificationCode});
-      // sendEmail(userDets.user[0].email, firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
-      const res = await sendEmail('dave@harmonydata.co.uk', firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
-      // const res = await sendEmail(userDets.user[0].email, firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
+
+      // Dont send the email if we are running tests
+      if (!( websiteName === 'TESTER' && domainName === 'TESTER' )) {
+        // sendEmail(userDets.user[0].email, firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
+        const res = await sendEmail('dave@harmonydata.co.uk', firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
+        // const res = await sendEmail(userDets.user[0].email, firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
+      }
 
       return { statusCode: (userContDets.affectedRows === 1 ? 201 : 200), msg: 'Account created.', verificationCode };
     } catch (err) {
@@ -357,7 +360,7 @@ console.log (params);
 exports.userContactDetailsHandler = async (event) => {
 
   const response = {};
-  let res;
+  let res = {};
   console.log ('HELLO HELLO ------------------------------ 1');
   console.log (event);
   console.log ('HELLO HELLO ------------------------------ 1.5');

@@ -61,21 +61,26 @@ const userAccountModel = () => {
     async function selectUserAccountById (whereObj) {
 
         try {
+            console.log ('selectUserAccountById');
+            console.log (whereObj);
             const sql = 'SELECT * FROM user_login '  + db.createWhereClause (whereObj);
+            console.log (sql);
             const res = await db.selectData (sql);
+            console.log (res);
 
             const userDets = {
                 rows : res.rows,
                 user  : []
             };
 
-            res.data.forEach( ({user_id, email, username, password, validated, created_mins}) => {
-                userDets.user.push ({user_id, email, username, password, validated, created_mins });
+            res.data.forEach( ({user_id, email, username, password, type, validated}) => {
+                userDets.user.push ({user_id, email, username, password, type, validated });
             });
-
+console.log ('Hererrerererere 1')
             return (userDets);
 
         }catch (err) {
+            console.log ('Hererrerererere 2')
             throw err;
         }
     }
@@ -199,8 +204,10 @@ const userAccountModel = () => {
 
             const sql = 'DELETE FROM user_login ' + db.createWhereClause ( { user_id } );
             const res = await db.saveData(sql);
-            console.log ('Tutor Delete Return Record');
-            console.log (res);
+
+            if (res.affectedRows !== 1) {
+                return { statusCode: 404, errorMsg: "The account does not exist."};
+              }
 
             return {statusCode: 201, msg: 'Account deleted.'};
     

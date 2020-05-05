@@ -135,3 +135,6 @@ In you want to run the lambda functions from the AWS console you will need to en
 sam local start-api --env-vars env.json --port 3002
 
 
+## Test api locally and lambda functions
+
+In order to run the Jest tests the api needs to be running ( sam local start-api ) with the appriopiate arguments set. Then run npm run test.

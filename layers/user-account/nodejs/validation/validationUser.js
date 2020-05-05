@@ -177,7 +177,7 @@ const validationFns = () => {
     //  False       The firstname is invalid
     //  
     const validateFirstname = firstname => {
-        if ( firstname === undefined ) {
+        if ( firstname === undefined || firstname === '' ) {
             return { valid: false, msg: 'First name is not set.' };
         } else if ( firstname.length < 2 ) {
             return { valid: false, msg: 'First name must be at least 2 characters long.' };
@@ -199,7 +199,7 @@ const validationFns = () => {
     //  
     const validateLastname = lastname => {
 
-        if ( lastname === undefined ) {
+        if ( lastname === undefined || lastname === '' ) {
             return { valid: false, msg: 'Last name is not set.' };
         } else if ( lastname.length < 2 ) {
             return { valid: false, msg: 'Last name must be at least 2 characters long.' };
@@ -221,7 +221,7 @@ const validationFns = () => {
     //  
     const validateGender = gender => {
 
-        if ( gender === undefined ) {
+        if ( gender === undefined || gender === '') {
             return { valid: false, msg: 'Gender is not set.' };
         } else if ( gender !== 'M' && gender !== 'F' ){
             return { valid: false, msg: 'Enter a valid gender ( M / F ).' };
@@ -241,7 +241,7 @@ const validationFns = () => {
     //  
     const validateAddress1 = addr1 => {
 
-        if ( addr1 === undefined ) {
+        if ( addr1 === undefined || addr1 === '' ) {
             return { valid: false, msg: 'The first line of your address needs to entered.' };
         } else if (addr1.length < 2) {
             return { valid: false, msg: 'The address must be at least 2 characters long.' };
@@ -281,7 +281,7 @@ const validationFns = () => {
     //  
     const validateTown = town => {
 
-        if ( town === undefined ) {
+        if ( town === undefined || town === '' ) {
             return { valid: false, msg: 'Your town needs to entered.' };
         } else if (town.length < 2) {
             return { valid: false, msg: 'A valid town needs to be entered.' };
@@ -303,7 +303,7 @@ const validationFns = () => {
     //  
     const validateCounty = county => {
 
-        if ( county === undefined ) {
+        if ( county === undefined || county === '' ) {
             return { valid: false, msg: 'Your county needs to entered.' };
         } else if (county.length < 2) {
             return { valid: false, msg: 'The county must be at least 2 characters long.' };
@@ -343,7 +343,7 @@ const validationFns = () => {
     //  
     const validateCountry = country => {
 
-        if ( country === undefined ) {
+        if ( country === undefined || country === '' ) {
             return { valid: false, msg: 'You must enter a valid country.' };
         } else if (country.length < 2) {
             return { valid: false, msg: 'You must enter a valid country.' };

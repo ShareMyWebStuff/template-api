@@ -19,10 +19,25 @@ const userValidateMedia = () => {
 
         if (event.body === undefined || event.body === null ) {
             body = {};
-        } else {
+            throw { statusCode: 404, errorMsg: {'verificationCode': "Verification code does not exist."} };
+          } else {
             body = JSON.parse(event.body);
         }
 
+        const { verificationCode, mediaType } = body;
+
+
+        if ( verificationCode === undefined || verificationCode === '' ) {
+          throw { statusCode: 404, errorMsg: {'verificationCode': "Verification code does not exist."} };
+        }
+
+        if (mediaType === undefined || mediaType === ''){
+          throw { statusCode: 404, errorMsg: {'mediaType': "Media type is not specified."} };
+        }
+
+        if (mediaType !== 'Email' && mediaType !== 'Mobile'){
+          throw { statusCode: 422, errorMsg: {'mediaType': "Media type is not allowed."} };
+        }
 
 // VALIDATE PARAMETERS
 //  verificationCode
@@ -31,14 +46,13 @@ const userValidateMedia = () => {
   
         await db.connectToDB();
         console.log ('validateMedia - 2');
-        const { verificationCode } = body;
         console.log ('validateMedia - 3');
         let res = await userMedia.selectEmailVerification ( { verificationCode, mediaType: 'Email' });
         console.log ('validateMedia - 4');
         console.log (res);
 
         if (res.rows === 0) {
-          console.log ('validateMedia - 5');
+          console.log ('validateMedia - 5');0
           throw { statusCode: 404, errorMsg: {'verificationCode': "Verification code does not exist."} };
         } else {
 
@@ -68,7 +82,7 @@ const userValidateMedia = () => {
 exports.validateMedia = async (event) => {
 
     const response = {};
-    let res;
+    let res = {};
   
     try {
       console.log ('validateMedia OPTIONS - 1');
