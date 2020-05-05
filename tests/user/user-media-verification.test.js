@@ -204,7 +204,7 @@ describe ( '2. Test for failures.', () => {
         let res, body, status;
 
         try {
-            body = JSON.stringify({ mediaType: 'Email'});
+            body = JSON.stringify({ });
             res = await axios.post(`http://localhost:3002/user-media-verify`, body, config);
 
             expect(res.status).toBe(404);
@@ -215,28 +215,12 @@ describe ( '2. Test for failures.', () => {
         }
     }, millisecondTimeout);
 
-    test ('2.2 No Media Type', async () => {
+    test ('2.2 Invalid verification code', async () => {
 
         let res, body, status;
 
         try {
-            body = JSON.stringify({ verificationCode: '12345'});
-            res = await axios.post(`http://localhost:3002/user-media-verify`, body, config);
-
-            expect(res.status).toBe(404);
-            expect(res.data.errorMsg.mediaType).toBe("Media type is not specified.");
-
-        } catch (err) {
-            expect(status).toBe(404);
-        }
-    }, millisecondTimeout);
-
-    test ('2.3 Invalid verification code', async () => {
-
-        let res, body, status;
-
-        try {
-            body = JSON.stringify({ verificationCode: '12345', mediaType: 'Email'});
+            body = JSON.stringify({ verificationCode: '12345' });
             res = await axios.post(`http://localhost:3002/user-media-verify`, body, config);
 
             expect(res.status).toBe(404);
@@ -273,7 +257,7 @@ describe ( '3. Test for success.', () => {
         let res, body, status;
 
         try {
-            body = JSON.stringify({ verificationCode, mediaType: 'Email'});
+            body = JSON.stringify({ verificationCode});
             res = await axios.post(`http://localhost:3002/user-media-verify`, body, config);
 
             expect(res.status).toBe(201);
