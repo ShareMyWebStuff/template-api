@@ -5,88 +5,89 @@ const userAccount = require ('/opt/nodejs/models/modelUserAccount').userAccountM
 const userContactDets = require ('/opt/nodejs/models/modelUserContactDetails').userContactDetailsModel();
 const userMedia = require ('/opt/nodejs/models/modelUserMediaVerification').userMediaVerificationModel();
 const validator = require ('/opt/nodejs/validation/validationUser').validationFns();
-const AWS = require("aws-sdk");
+const sendWelcomeEmail = require ('/opt/nodejs/services/sendEmailTemplate').awsEmailTemplates();
+// const AWS = require("aws-sdk");
 
 const userContactDetsMaintenance = async () => {
 
-  const sendTemplateEmail = ( ses, params ) => {
-    return new Promise ( ( resolve, reject) => {
-        ses.sendTemplatedEmail(params, (err, data) => {
-            if (err) {
-                reject( err.stack);
-            } else {
-                resolve(data);
-            }
-        });
-    });
-  }
+  // const sendTemplateEmail = ( ses, params ) => {
+  //   return new Promise ( ( resolve, reject) => {
+  //       ses.sendTemplatedEmail(params, (err, data) => {
+  //           if (err) {
+  //               reject( err.stack);
+  //           } else {
+  //               resolve(data);
+  //           }
+  //       });
+  //   });
+  // }
 
-  const sendEmail = async (email, name, verificationCode, username, password, websiteName, domainName ) => {
+//   const sendEmail = async (email, name, verificationCode, username, password, websiteName, domainName ) => {
 
-    console.log (`email             ${email}`);
-    console.log (`name              ${name}`);
-    console.log (`verificationCode  ${verificationCode}`);
-    console.log (`username          ${username}`);
-    console.log (`password          ${password}`);
-    console.log (`websiteName       ${websiteName}`);
-    console.log (`domainName        ${domainName}`);
-    try {
+//     console.log (`email             ${email}`);
+//     console.log (`name              ${name}`);
+//     console.log (`verificationCode  ${verificationCode}`);
+//     console.log (`username          ${username}`);
+//     console.log (`password          ${password}`);
+//     console.log (`websiteName       ${websiteName}`);
+//     console.log (`domainName        ${domainName}`);
+//     try {
 
-      let fromEmail;
+//       let fromEmail;
 
-      AWS.config.update({
-        region: 'us-east-1' 
-      });
+//       AWS.config.update({
+//         region: 'us-east-1' 
+//       });
 
-      const ses = new AWS.SES({apiVersion: '2010-12-01'});
+//       const ses = new AWS.SES({apiVersion: '2010-12-01'});
 
-      console.log ('*********************************************');
-      console.log (process.env);
-      console.log (process.env.AWS_SAM_LOCAL);
-      console.log ('*********************************************');
+//       console.log ('*********************************************');
+//       console.log (process.env);
+//       console.log (process.env.AWS_SAM_LOCAL);
+//       console.log ('*********************************************');
 
-      const supportEmail=`support@${domainName}`
-      if (process.env.AWS_SAM_LOCAL === 'true') {
-        fromEmail = `"${domainName}" <noreply@${domainName}>`;
-        domainName = "http://localhost:3000"
-      } else {
-        fromEmail = `"${domainName}" <noreply@${domainName}>`;
-      }
+//       const supportEmail=`support@${domainName}`
+//       if (process.env.AWS_SAM_LOCAL === 'true') {
+//         fromEmail = `"${domainName}" <noreply@${domainName}>`;
+//         domainName = "http://localhost:3000"
+//       } else {
+//         fromEmail = `"${domainName}" <noreply@${domainName}>`;
+//       }
 
-      // `"${domainName}" <noreply@${domainName}>`
-      const params = {
-          Destination: {
-              ToAddresses: [email]
-          },
-          Source: `${fromEmail}`,
-          Template: "WelcomeEmail", 
-          TemplateData: `{ \"name\":\"${name}\",\"verificationCode\":\"${verificationCode}\",\"username\":\"${username}\",\"password\":\"${password}\",\"websiteName\":\"${websiteName}\",\"domainName\":\"${domainName}\",\"supportEmail\":\"${supportEmail}\" }`, 
-          ReplyToAddresses: [
-            fromEmail
-          ],
-      };
-console.log ('Before error message');
-console.log (params);
-      const res = await sendTemplateEmail( ses, params );
-      console.log (res);
-      if ( res.MessageId === undefined) {
-        throw { statusCode: 422, msg: err.message };
-      } else {
-        return ( res );
-      }
+//       // `"${domainName}" <noreply@${domainName}>`
+//       const params = {
+//           Destination: {
+//               ToAddresses: [email]
+//           },
+//           Source: `${fromEmail}`,
+//           Template: "SMT_WelcomeEmail", 
+//           TemplateData: `{ \"name\":\"${name}\",\"verificationCode\":\"${verificationCode}\",\"username\":\"${username}\",\"password\":\"${password}\",\"websiteName\":\"${websiteName}\",\"domainName\":\"${domainName}\",\"supportEmail\":\"${supportEmail}\" }`, 
+//           ReplyToAddresses: [
+//             fromEmail
+//           ],
+//       };
+// console.log ('Before error message');
+// console.log (params);
+//       const res = await sendTemplateEmail( ses, params );
+//       console.log (res);
+//       if ( res.MessageId === undefined) {
+//         throw { statusCode: 422, msg: err.message };
+//       } else {
+//         return ( res );
+//       }
   
-      // ses.sendTemplatedEmail(params, (err, data) => {
-      //     if (err) {
-      //         return console.log(err, err.stack);
-      //     } else {
-      //         console.log("Email sent.", data);
-      //     }
-      // });
-    } catch (err) {
-      throw (err);
-    }
+//       // ses.sendTemplatedEmail(params, (err, data) => {
+//       //     if (err) {
+//       //         return console.log(err, err.stack);
+//       //     } else {
+//       //         console.log("Email sent.", data);
+//       //     }
+//       // });
+//     } catch (err) {
+//       throw (err);
+//     }
     
-  };
+//   };
 
   // 
   // Function : validateFields
@@ -251,7 +252,25 @@ console.log (params);
       // Dont send the email if we are running tests
       if (!( websiteName === 'TESTER' && domainName === 'TESTER' )) {
         // sendEmail(userDets.user[0].email, firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
-        const res = await sendEmail('dave@harmonydata.co.uk', firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
+        // const res = await sendEmail('dave@harmonydata.co.uk', firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
+
+        console.log ('process.env.AWS_SAM_LOCAL');
+        console.log (process.env.AWS_SAM_LOCAL);
+
+        const res = await sendWelcomeEmail.sendEmail(userDets.user[0].email, 
+                domainName, 
+                "SMT_WelcomeEmail", 
+                {
+                  name: firstname, 
+                  verificationCode, 
+                  username: userDets.user[0].username, 
+                  password,
+                  websiteName, 
+                  domainName, 
+                  supportEmail: `support@${domainName}`
+        } );
+        console.log ('Return Email');
+        console.log (res);
         // const res = await sendEmail(userDets.user[0].email, firstname, verificationCode, userDets.user[0].username, password, websiteName, domainName);
       }
 

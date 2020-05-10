@@ -164,6 +164,50 @@ Resources:
             Method: ANY
 
   #
+  # User Password reset
+  #
+  userPasswordReset:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userPasswordResetTest
+      Handler: user-password-reset.userPasswordResetHandler
+      CodeUri: lambdas/handlers/user
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: handles the reseting and emailing a password reset.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTUserAccountLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /user-password-reset
+            Method: ANY
+
+  #
+  # User Email Usernames
+  #
+  userEmailUsernames:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userEmailUsernamesTest
+      Handler: user-email-usernames.emailUsernames
+      CodeUri: lambdas/handlers/user
+      Role: arn:aws:iam::216211142709:role/smt-dev-lambda-execution
+      Description: Emails all the usernames associated to an email address to the specified email address.
+      Layers:
+      - !Ref SMTCommonLayer
+      - !Ref SMTUserAccountLayer
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /user-email-usernames
+            Method: ANY
+
+  #
   # User Contact Details
   #
   userContactDetailsMaintenance:

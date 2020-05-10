@@ -17,6 +17,10 @@ tags:
     description: Maintains the users contact details.
   - name: User Media Verification
     description: Allows the user to verify the email or mobile number they are using.
+  - name: User Reset Password
+    description: Allows the user to reset their passord and not needing to login.
+  - name: User Email Usernames
+    description: Allows a client to get all the usernames associated to an email address emailed to the email addrerss.
   - name: Static Data - Subjects
     description: Handles retrieving the subjects and subject categories. 
 
@@ -1229,6 +1233,320 @@ paths:
         '503':
           $ref: '#/components/responses/DatabaseConnectivityIssue'
 
+  /user-password-reset:
+    summary: Handles the reseting of users passwords when they can not log on.
+    description: If a user forgets their password they can rquest a password reset email and reset their password, this route handles both.
+    
+    post:
+      summary: Resets a users password if they have forgetten it.
+      description: Resets a users password if they have forgetten it.
+      tags:
+        - User Reset Password
+      operationId: resetPasswordNotLoggedIn
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                resetCode:
+                  type: string
+                  example: '123456789'
+                password:
+                  type: string
+                  example: 'Hello123!'
+                password2:
+                  type: string
+                  example: 'Hello123!'
+      responses:
+        '201':
+          description: Password successfully changed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: 
+                    type: string
+                    example: "Password has been successfully changed."
+        '404':
+          description: Reset code does not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      resetCode:
+                        type: string
+                        example: Reset code does not exist.
+
+        '422':
+          description: User Password Reset Validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      resetCode:
+                        type: string
+                        example: Reset code is invalid.
+                      password: 
+                        type: string
+                        example: Your password needs to be 6 - 20 characters long and must contain at least one number.
+                      password2:
+                        type: string
+                        example: Your passwords must match.
+        '500':
+          $ref: '#/components/responses/SystemError'
+
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: POST
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userPasswordResetTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+    put:
+      summary: Retrieves / creates details to send a password reset email.
+      description: Retrieves / creates the details to send a password reset email.
+      tags:
+        - User Reset Password
+      operationId: emailResetPasswordNotLoggedIn
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: PUT
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userPasswordResetTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: 'MyUsername'
+
+      responses:
+        '200':
+          description: Successfully sent reset password email.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows:
+                    type: integer
+                    example: 1
+                  response:
+                    type: object
+                    properties:
+                      user_id:
+                        type: object
+                        properties:
+                          RequestId:
+                            type: string
+                            example: 'fe96b2d5-a98d-4533-aa01-ea88586cc299'
+                        example: 3
+                      MessageId:
+                        type: string
+                        example: '01000171eabf7bff-1a04a105-2d0e-4120-afc1-59fa9ac1f1ed-000000'
+
+        '404':
+          description: Username does not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username does not exist.
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    options:
+
+      summary: User Reset Password options.
+      description: User reset password options.
+      tags:
+        - User Reset Password
+      operationId: optionUserResetPassword
+
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Auth-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
+
+  '/user-email-usernames/{email}':
+    summary: Sends an email of all the usernames associated to an email address, to the email address.
+    description: Sends an email of all the usernames associated to an email address, to the email address.
+    
+    get:
+      summary: Sends an email to the email address showing all the usernames associated to the email
+      description: Sends an email to the email address showing all the usernames associated to the email.
+      tags:
+        - User Email Usernames
+      operationId: getUserEmailUsernames
+
+      x-amazon-apigateway-request-validators:
+        basic:
+          validateRequestParameters: true
+
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: GET
+        uri: "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:216211142709:function:userEmailUsernamesTest/invocations"
+        passThroughBehaviour: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        responses:
+          default:
+            statusCode: 200
+
+      parameters:
+        - name: email
+          in: path
+          description: Email address
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully sent usernames to email.
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    example: 'Email has been sent.'
+
+        '404':
+          $ref: '#/components/responses/UserAccountDoesNotExist'
+        '422':
+          description: User Email Username Validation issues.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg: 
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Username is invalid.
+        '500':
+          $ref: '#/components/responses/SystemError'
+        '503':
+          $ref: '#/components/responses/DatabaseConnectivityIssue'
+
+    options:
+
+      summary: User Email Usernames options.
+      description: User Email Usernames options.
+      tags:
+        - User Email Usernames
+      operationId: optionUser
+
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Auth-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
 
 
 components:

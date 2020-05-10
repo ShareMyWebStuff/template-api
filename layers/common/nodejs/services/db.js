@@ -45,7 +45,7 @@ const mysqlDB = () => {
     async function connectToDB () {
 
         try {
- 
+
             pool = await mysqlDb.createPool({
                 connectionLimit : 10,
                 host            : DB_HOST,
