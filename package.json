@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
-        "aws-sdk": "^2.437.0",
+        "aws-sdk": "^2.814.0",
         "bcryptjs": "^2.4.3",
         "jsonwebtoken": "^8.5.1",
         "mysql": "^2.17.1",
